@@ -1,0 +1,369 @@
+openapi: 3.0.0
+info:
+  title: Health Care REST API
+  version: '0.1'
+  description: 项目云端API接口文档
+servers:
+  - url: 'https://anonymousnet.top/health-care/api'
+    description: Dev Server
+paths:
+  /volunteers:
+    post:
+      summary: 注册
+      tags:
+        - volunteers
+        - ''
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  sex:
+                    type: string
+                  tel:
+                    type: string
+                  password:
+                    type: string
+              examples:
+                example-1:
+                  value:
+                    id: 5
+                    name: 张三1
+                    sex: FEMALE
+                    tel: '15023443410'
+                    password: qwerty
+        '400':
+          description: Bad Request 字段错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  field_errors:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                example-1:
+                  value:
+                    tel: "需要匹配正则表达式\"^1[3456789]\\d{9}$\""
+            application/xml:
+              schema:
+                type: object
+                properties: {}
+        '409':
+          description: Conflict 手机号重复
+          headers: {}
+          content:
+            text/plain:
+              schema:
+                type: object
+              examples: {}
+      operationId: post-volunteers
+      description: 用于注册志愿者
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                sex:
+                  type: integer
+                tel:
+                  type: string
+                password:
+                  type: string
+              required:
+                - name
+                - sex
+                - tel
+                - password
+            examples:
+              example-1:
+                value:
+                  name: 张三1
+                  tel: 15023443410
+                  sex: 1
+                  password: qwerty
+  /volunteers/login:
+    post:
+      summary: 登录
+      tags:
+        - volunteers
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+      operationId: post-volunteers-login
+      description: 登录校验
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tel:
+                  type: string
+                password:
+                  type: string
+              required:
+                - tel
+                - password
+            examples:
+              example-1:
+                value:
+                  tel: 15023443420
+                  password: qwerty
+  '/volunteers/{id}/serve':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    put:
+      summary: 打卡上岗
+      tags:
+        - volunteers
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: "Not Found - Id doesn't exist"
+      operationId: put-volunteers-id-serve
+      description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skill:
+                  type: integer
+                communityId:
+                  type: integer
+            examples:
+              example-1:
+                value:
+                  skill: 1
+                  communityId: 1
+        description: ''
+  '/volunteers/{id}/dismiss':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    put:
+      summary: 打卡下岗
+      tags:
+        - volunteers
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: "Not Found - Id doesn't exist"
+      operationId: put-volunteers-id-dismiss
+      requestBody: {}
+  '/volunteers/{id}/pulse':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    post:
+      summary: 保持在线
+      tags:
+        - volunteers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assignedRequest:
+                    type: string
+                  notifications:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                example-1:
+                  value:
+                    assignedRequest: null
+                    notifications: null
+        '400':
+          description: Bad Request - Invalid id
+      operationId: post-volunteers-id-pulse
+      description: |-
+        若志愿者过长时间未发送该请求，服务器将认为该志愿者掉线。掉线情况下，志愿者不会被分配到任何请求。
+        （临时）现阶段，若志愿者超过20秒未发送该请求，则认为该志愿者掉线。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: string
+                longitude:
+                  type: string
+              required:
+                - latitude
+                - longitude
+            examples:
+              example-1:
+                value:
+                  latitude: 1.232
+                  longitude: 2.234531111
+        description: ''
+  /communities:
+    get:
+      summary: 查询所有社区
+      tags:
+        - community
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+              examples:
+                example-1:
+                  value:
+                    - id: 1
+                      name: 社区1
+                    - id: 2
+                      name: 社区2
+      operationId: get-communities
+      requestBody: {}
+    post:
+      summary: 创建社区
+      tags:
+        - community
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+              examples:
+                example-1:
+                  value:
+                    id: 1
+                    name: 社区1
+        '409':
+          description: Conflict
+      operationId: post-communities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            examples:
+              example-1:
+                value:
+                  name: 社区1
+  '/communities/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    put:
+      summary: 更改社区名
+      tags:
+        - community
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+      operationId: put-communities-id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            examples:
+              example-1:
+                value:
+                  name: 社区2
+    get:
+      summary: 查询单个社区
+      operationId: get-communities-id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+              examples:
+                example-1:
+                  value:
+                    - id: 1
+                      name: 社区3
+components:
+  schemas:
+    Sex-Enum:
+      title: Sex Enum
+      type: object
+      x-examples: {}
+      properties:
+        id:
+          type: string
+      description: |-
+        0 - MALE
+        1 - FEMALE
+    Skill-Enum:
+      title: Skill-Enum
+      type: object
+      description: |-
+        0 - CHORE   // 杂事
+        1 - MEDICAL // 医疗咨询
+        2 - URGENT  // 医疗救助
+  securitySchemes: {}
+security: []
